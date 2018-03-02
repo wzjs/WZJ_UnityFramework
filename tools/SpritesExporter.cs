@@ -8,7 +8,7 @@ using UnityEditor;
 /// </summary>
 namespace WZJ_UnityFrameWork
 {
-    public class SpritesExporter : MonoBehaviour
+    public class SpritesExporter
     {
 
         [MenuItem("Tools/SpritesExporter")]
