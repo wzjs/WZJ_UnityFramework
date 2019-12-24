@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 public delegate void CellCallback(GameObject obj, int index);
 
 public class CellItem
@@ -9,7 +10,8 @@ public class CellItem
     public GameObject obj;
     public int index;
 }
-public class DeScrollView : MonoBehaviour {
+public class DeScrollView : MonoBehaviour
+{
 
     //content总长度 % (item的width/height + space) - space >0    + 2
     public ScrollRect mainContainer;
@@ -27,6 +29,8 @@ public class DeScrollView : MonoBehaviour {
 
     private float containerLength = 0;
     private float targetLength = 0;
+    public EventSystem EventSystem;
+    public bool isPress = false;
     public int allGoNums
     {
         get
@@ -36,7 +40,7 @@ public class DeScrollView : MonoBehaviour {
     }
     private void Awake()
     {
-        if(mainContainer == null)
+        if (mainContainer == null)
         {
             Debug.Log("main Target is Null,Please Set Value");
             return;
@@ -46,7 +50,7 @@ public class DeScrollView : MonoBehaviour {
         //int curNum = mainContainer.content.
     }
 
-    public void Init(int maxNum,CellCallback callback)
+    public void Init(int maxNum, CellCallback callback)
     {
         sContent = mainContainer.content;
         this.maxNum = maxNum;
@@ -58,11 +62,11 @@ public class DeScrollView : MonoBehaviour {
     private void SetCells()
     {
         CellItem item;
-        for(int i = 0; i < allGoNums; i++)
+        for (int i = 0; i < allGoNums; i++)
         {
             item = new CellItem();
             var go = Instantiate(goCell, sContent.transform);
-            go.name = i + 1+"";
+            go.name = i + 1 + "";
             item.obj = go;
             item.index = i;
             cellCallback(go, i);
@@ -74,7 +78,7 @@ public class DeScrollView : MonoBehaviour {
     private void SetViewNum(bool hor)
     {
         var cRect = mainContainer.GetComponent<RectTransform>();
-        containerLength = hor ? cRect.rect.width: cRect.rect.height;
+        containerLength = hor ? cRect.rect.width : cRect.rect.height;
         var cpRect = goCell.GetComponent<RectTransform>();
         targetLength = hor ? cpRect.rect.width : cpRect.rect.height;
         float express = containerLength % (targetLength + space) - space;
@@ -91,34 +95,44 @@ public class DeScrollView : MonoBehaviour {
 
     }
 
-	// Use this for initialization
-	void Start () {
-		
-	}
+    // Use this for initialization
+    void Start()
+    {
+
+    }
 
     private void SetCell()
     {
 
     }
-    
+
     //private void LateUpdate()
     //{
-        
+
     //}
     // Update is called once per frame
-    void Update() {
+    void Update()
+    {
+        if (Input.GetMouseButtonDown(0))
+        {
+            isPress = true;
+        }
+        if (Input.GetMouseButtonUp(0))
+        {
+            isPress = false;
+        }
         //暂时只做水平滑动
-        CellItem target1 = GetLipObj(2);
-        Debug.LogError("index1111111>>>>>>>>>>>>>" + target1.obj.transform.GetSiblingIndex());
+        //CellItem target1 = GetLipObj(2);
+        //Debug.LogError("index1111111>>>>>>>>>>>>>" + target1.obj.transform.GetSiblingIndex());
         float curPos = sContent.localPosition.x;
-        if(curPos < lastPos)
+        if (curPos < lastPos)
         {
             //往左滑动
             CellItem target = GetLipObj(2);
-            if(target.index >= maxNum - 1)
+            if (target.index >= maxNum - 1)
             {
                 lastPos = curPos;
-                Debug.Log(string.Format("Now is get List ending,target.index:{0},maxNum:{1}",target.index,maxNum));
+                Debug.Log(string.Format("Now is get List ending,target.index:{0},maxNum:{1}", target.index, maxNum));
                 return;
             }
             if (target.obj.transform.position.x - targetLength / 2 <= mainContainer.transform.position.x + containerLength / 2)
@@ -135,12 +149,12 @@ public class DeScrollView : MonoBehaviour {
                 nextItem.index = target.index + 1;
                 //if (result)
                 //{
-                   
+
                 //}
 
             }
         }
-        else if(curPos > lastPos)
+        else if (curPos > lastPos)
         {
             //Debug.Log(string.Format("curPos>>>{0},lastPos>>>{1}", curPos, lastPos));
             //往右滑动
@@ -160,24 +174,24 @@ public class DeScrollView : MonoBehaviour {
                 allObjs[nowSiblIndex - 1].index = target.index - 1;
                 //if (result)
                 //{
-                   
+
                 //}
             }
         }
         lastPos = curPos;
-	}
+    }
 
     //type 1 left 2 right
     private CellItem GetLipObj(int type)
     {
-  
+
         for (int i = 0; i < allGoNums; i++)
         {
             CellItem temp;
             if (type == 1)
             {
                 temp = allObjs[i];
-                if(temp.obj.transform.position.x + targetLength / 2  >= mainContainer.transform.position.x - containerLength / 2)
+                if (temp.obj.transform.position.x + targetLength / 2 >= mainContainer.transform.position.x - containerLength / 2)
                 {
                     return temp;
                 }
@@ -194,7 +208,7 @@ public class DeScrollView : MonoBehaviour {
         return allObjs[0];
     }
     //
-    private bool SetOrder(CellItem item,int type)
+    private bool SetOrder(CellItem item, int type)
     {
         int index = item.obj.transform.GetSiblingIndex();
         if (type == 1)
@@ -207,6 +221,12 @@ public class DeScrollView : MonoBehaviour {
                 allObjs.Insert(0, lastTemp);
                 var lastPosTest = sContent.transform.localPosition;
                 sContent.transform.localPosition += new Vector3(-targetLength - space, 0, 0);
+                if (isPress)
+                {
+                    PointerEventData pointerEventData = new PointerEventData(EventSystem);
+                    pointerEventData.position = Input.mousePosition;
+                    mainContainer.OnBeginDrag(pointerEventData);
+                }
                 //lastPos = sContent.transform.localPosition.x;
                 Debug.LogError(string.Format("CellItem Name: {0},lastPosition:{1},nowPosition: {2}", lastTemp.obj.name, lastPosTest, sContent.transform.localPosition));
                 return true;
@@ -214,15 +234,23 @@ public class DeScrollView : MonoBehaviour {
         }
         else
         {
-            if(index > allGoNums - 2)
+            if (index > allGoNums - 2)
             {
                 CellItem lastTemp = allObjs[0];
                 lastTemp.obj.transform.SetSiblingIndex(allGoNums - 1);
                 allObjs.Remove(lastTemp);
-                allObjs.Insert(allGoNums-1, lastTemp);
+                allObjs.Insert(allGoNums - 1, lastTemp);
                 var lastPosTest = sContent.transform.localPosition;
                 sContent.transform.localPosition += new Vector3(targetLength + space, 0, 0);
                 Debug.LogError("SilbingIndex>>>>>>>>>>>>>>" + lastTemp.obj.transform.GetSiblingIndex());
+                if (isPress)
+                {
+                    Debug.Log("===============");
+                    PointerEventData pointerEventData = new PointerEventData(EventSystem);
+                    pointerEventData.position = Input.mousePosition;
+                    mainContainer.OnBeginDrag(pointerEventData);
+                }
+
                 //lastPos = sContent.transform.localPosition.x;
                 Debug.LogError(string.Format("CellItem Name: {0},lastPosition:{1},nowPosition: {2}", lastTemp.obj.name, lastPosTest, sContent.transform.localPosition));
                 return true;
