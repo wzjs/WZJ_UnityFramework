@@ -1,0 +1,9 @@
+﻿  stdafx.cpp
+  Dll1.cpp
+c:\users\dell\source\repos\luatest\dll1\dll1.cpp(25): warning C4244: “初始化”: 从“lua_Number”转换到“int”，可能丢失数据
+c:\users\dell\source\repos\luatest\dll1\dll1.cpp(72): warning C4098: “lua_set_global”:“void”函数返回值
+c:\users\dell\source\repos\luatest\dll1\dll1.cpp(77): warning C4098: “lua_push_function”:“void”函数返回值
+  dllmain.cpp
+  正在生成代码...
+    正在创建库 C:\Users\DELL\source\repos\LuaTest\Debug\Dll1.lib 和对象 C:\Users\DELL\source\repos\LuaTest\Debug\Dll1.exp
+  Dll1.vcxproj -> C:\Users\DELL\source\repos\LuaTest\Debug\Dll1.dll

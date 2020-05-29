@@ -1,0 +1,7 @@
+C:\Users\DELL\source\repos\LuaTest\CShaperTest\bin\Debug\CShaperTest.exe.config
+C:\Users\DELL\source\repos\LuaTest\CShaperTest\bin\Debug\CShaperTest.exe
+C:\Users\DELL\source\repos\LuaTest\CShaperTest\bin\Debug\CShaperTest.pdb
+C:\Users\DELL\source\repos\LuaTest\CShaperTest\obj\Debug\CShaperTest.csprojAssemblyReference.cache
+C:\Users\DELL\source\repos\LuaTest\CShaperTest\obj\Debug\CShaperTest.csproj.CoreCompileInputs.cache
+C:\Users\DELL\source\repos\LuaTest\CShaperTest\obj\Debug\CShaperTest.exe
+C:\Users\DELL\source\repos\LuaTest\CShaperTest\obj\Debug\CShaperTest.pdb
