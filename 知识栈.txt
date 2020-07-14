@@ -140,3 +140,15 @@ messageGet()  == messageGet.Invoke()
 事件会为其所在的类中增加remove和add两个方法 对应 -= +=  
 事件成员在其class外部不能使用invoke 即调用方法（只能使用+= 或者-= 不能进行其他操作 比如= 赋值操作）
 事件能够增加安全性 暴露的接口少
+
+简单的看了Dictionary的实现：Dictionary有两个核心的变量 一个叫 buckets 用来存储真正的key所对应的下标，
+一个叫entries,是一个结构体数组 存储了哈希值 key value next(下一个index) ,当往字典中插入时，key会进行
+哈希运算 int num = this.comparer.GetHashCode(key) & 0x7fff_ffff; 
+int index = num % this.buckets.Length; 
+再用index去buckets用寻找真正的下标代入到entries中如果key正好和所需的key相同就返回，否则继续从next中遍历
+
+NGUI Panel >>>>>> 简单看了一下NGUI的渲染,最主要的类是一个UIDrawCall,继承MonoBehaviour,其实是一个游戏物体,只不过
+被隐藏了,当初觉得所有继承widget的组件其实很奇怪因为他们没有材质没有Render那怎么能渲染出东西呢,其实渲染的工作
+都在DrawCall上,Panel会对所有他底下的Widget进行depth升序,然后进行循环遍历如果连续的两个widget的shader material texture
+相同,那么会合并mesh,这个工作交给UIDrawCall完成.
+
