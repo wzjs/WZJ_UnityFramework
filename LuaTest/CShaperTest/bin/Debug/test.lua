@@ -2,6 +2,7 @@
 -- print("=========")
 -- print(CTest(0))
 --print(CInovkeFunc1())
+-- WriteLine(Test())
 print(Test())
 function CInovkeFunc()
 	print("Hello,World")

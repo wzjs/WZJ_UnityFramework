@@ -4,16 +4,36 @@
 #include "pch.h"
 #include <iostream>
 #include <lua.hpp>
+//extern int d = 3, f = 5;    // d 和 f 的声明 
+char a;
+extern int globalVar;
+void test();
 int main()
 {
-	lua_State *l = luaL_newstate();
+	/*lua_State *l = luaL_newstate();
 	lua_pushstring(l, "Hello,World");
 	int count = lua_gettop(l);
 	std::cout << count;
 	const char* str = lua_tostring(l, -1);
-	std::cout << str;
+	std::cout << str;*/
+	//int d = 3, f = 5;
+	int d = 2;
+	int *addr = &d;
+	int **addr1 = &addr;
+	//std::cout << globalVar;
+	int  var[3] = { 10, 100, 200 };
+
+	for (int i = 0; i < 3; i++)
+	{
+		*var = i;    // 这是正确的语法
+	}
+	std::cout << var[0];
+	test();
 }
 
+void test() {
+	std::cout << "hello,world";
+}
 // 运行程序: Ctrl + F5 或调试 >“开始执行(不调试)”菜单
 // 调试程序: F5 或调试 >“开始调试”菜单
 

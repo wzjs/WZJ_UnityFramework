@@ -15,23 +15,27 @@ namespace CShaperTest
         static void Main(string[] args)
         {
             IntPtr L = lua_new_state();
-          
+
             //Console.WriteLine(luaopen_test(L));
-       
 
-            RegirstFunc(L, CShaperTest, "CTest");
-            RegirstFunc(L, print, "WriteLine");
-            RegirstFunc(L, PushNumber, "Test");
 
-            int error = lua_load_file(L, "test.lua");
-            if (error != 0)
-            {
-                IntPtr intPtr = lua_to_string(L, 1);
-                int strLen = lua_get_strlen(intPtr);
-                string str = lua_ptrtostring(intPtr, strLen);
-                Console.WriteLine(str);
-                return;
-            }
+            //RegirstFunc(L, CShaperTest, "CTest");
+            //RegirstFunc(L, print, "WriteLine");
+            //RegirstFunc(L, PushNumber, "Test");
+            lua_push_number(L, 2);
+            int refer = lua_ref(L);
+            lua_raw_geti(L, refer);
+            Console.WriteLine(lua_to_number(L, 1));
+            
+            //int error = lua_load_file(L, "test.lua");
+            //if (error != 0)
+            //{
+            //    IntPtr intPtr = lua_to_string(L, 1);
+            //    int strLen = lua_get_strlen(intPtr);
+            //    string str = lua_ptrtostring(intPtr, strLen);
+            //    Console.WriteLine(str);
+            //    return;
+            //}
         }
 
         private static void RegirstFunc(IntPtr L, Func<IntPtr, int> func, string luaName)
@@ -52,8 +56,9 @@ namespace CShaperTest
 
         static int PushNumber(IntPtr intPtr)
         {
-            lua_push_string(intPtr, "Hello");
-            lua_push_string(intPtr, "World");
+            //lua_push_string(intPtr, "Hello");
+            //lua_push_string(intPtr, "World");
+            lua_push_number(intPtr, 0.999f);
             return 2;
         }
 
@@ -118,6 +123,8 @@ namespace CShaperTest
         extern static int lua_to_number(IntPtr ptr, int index);
         [DllImport(@"C:\Users\DELL\source\repos\LuaTest\Debug\Dll1.dll", EntryPoint = "lua_push_string")]
         extern static void lua_push_string(IntPtr ptr, string str);
+        [DllImport(@"C:\Users\DELL\source\repos\LuaTest\Debug\Dll1.dll", EntryPoint = "lua_push_number")]
+        extern static void lua_push_number(IntPtr ptr, float number);
         [DllImport(@"C:\Users\DELL\source\repos\LuaTest\Debug\Dll1.dll", EntryPoint = "lua_new_state")]
         extern static IntPtr lua_new_state();
         [DllImport(@"C:\Users\DELL\source\repos\LuaTest\Debug\Dll1.dll", EntryPoint = "lua_get_top")]
@@ -139,6 +146,8 @@ namespace CShaperTest
         extern static int lua_raw_geti(IntPtr intPtr,int refer);
         [DllImport(@"C:\Users\DELL\source\repos\LuaTest\Debug\Dll1.dll", EntryPoint = "lua_ref")]
         extern static int lua_ref(IntPtr intPtr);
+        [DllImport(@"C:\Users\DELL\source\repos\LuaTest\Debug\Dll1.dll", EntryPoint = "lua_unref")]
+        extern static void lua_unref(IntPtr intPtr,int refer);
         [DllImport(@"C:\Users\DELL\source\repos\LuaTest\Debug\Dll1.dll", EntryPoint = "luaC_error")]
         extern static int luaC_error(IntPtr intPtr,string msg);
         [DllImport(@"C:\Users\DELL\source\repos\LuaTest\Debug\Dll1.dll", EntryPoint = "luaopen_test")]
