@@ -32,6 +32,12 @@ Dll1 void __stdcall lua_push_string(void* intPtr, const char* str)
 	lua_pushstring(agw, str);
 }
 
+Dll1 void __stdcall lua_push_number(void* intPtr, float number)
+{
+	lua_State* agw = (lua_State*)intPtr;
+	lua_pushnumber(agw, number);
+}
+
 Dll1 void* __stdcall lua_new_state()
 {
 	lua_State* l = luaL_newstate();
@@ -85,6 +91,11 @@ Dll1 int __stdcall lua_raw_geti(lua_State* L, int refer)
 Dll1 int __stdcall lua_ref(lua_State* L)
 {
 	return luaL_ref(L, LUA_REGISTRYINDEX);
+}
+
+Dll1 void __stdcall lua_unref(lua_State* L,int ref)
+{
+	return luaL_unref(L, LUA_REGISTRYINDEX, ref);
 }
 
 Dll1 int __stdcall luaC_error(lua_State* L,const char* msg)
