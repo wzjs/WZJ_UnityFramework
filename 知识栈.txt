@@ -167,6 +167,7 @@ UI框架:音效系统 封装点击按钮 增加声音字段
 只要调用过render.material,那材质球就会替换成material instance 在编辑器中的话就会丢失
 
 一帧中的执行顺序。
+C/S逻辑层共用一套C#代码,客户端通过 csharp.lua 转换成lua运行,好处是可以用C#来开发且可以热更新整个战斗模块。战斗使用ECS处理英雄的各种操作。ModelComponent负责英雄在界面上的显示。ProcessSystem是英雄的状态机,控制英雄的行为。每个状态都由一个独立的lua文件来控制。逻辑层的状态改变会通过协议的形式分发到表现层，表现层通过不同的协议进行处理。动画攻击，蓄力点通过工具导出每个动画的打点时间来计算。战斗中的每一个组件都会附加一个TimeClock接口用于二倍数制作。
 
 
 
@@ -228,5 +229,4 @@ adb forward tcp:34999 localabstract:Unity-com.company.product 真机调试
 3.unity自身bug导致
 Unity相关测试方法：UnityEngine.Diagnostics.Utils.ForceCrash
 调试真机闪退的方式 如果development勾选的话 包中会自带调试信息 ，如果没有勾选的话需要导出symbols调试文件,当遇到奔溃时 通过arm-linux-androideabi-addr2line -f -C -e   /Applications/Unity.app/Content/PlaybackEngines/AndroidPlayer/Variations/mono/Release/Symbols/armeabi-v7a/libunity.sym.so 0043a05c 来查看堆栈信息
-
 
