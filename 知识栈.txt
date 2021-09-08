@@ -18,6 +18,7 @@ lua在5.0之前使用简单的扫描标记清除没有引用的对象 这样做会把整个虚拟机的table遍历
 	
 
 经常会把位运算中左移右移的概念搞反，原因可能是没理解高位在后，低位在前，比如 1000000 常常把这个值当成是1 其实这是一个非常大的值，应该是00000001
+原码补码反码是计算机计算负数用的一种编码。
 
 C# 调用 Lua 实际上是 C#调用lua的C API 去和Lua交互
 Lua 调用 C# 
@@ -230,3 +231,44 @@ adb forward tcp:34999 localabstract:Unity-com.company.product 真机调试
 Unity相关测试方法：UnityEngine.Diagnostics.Utils.ForceCrash
 调试真机闪退的方式 如果development勾选的话 包中会自带调试信息 ，如果没有勾选的话需要导出symbols调试文件,当遇到奔溃时 通过arm-linux-androideabi-addr2line -f -C -e   /Applications/Unity.app/Content/PlaybackEngines/AndroidPlayer/Variations/mono/Release/Symbols/armeabi-v7a/libunity.sym.so 0043a05c 来查看堆栈信息
 
+unity Bound结构
+
+UGUI 框架源码阅读记录:
+事件系统:
+PointerEventData 对应鼠标来说 通过延迟创建的方式实例，每个按钮对应一个pointdata,并且每帧都会更新
+IPointerExitHandler IPointerEnterHandler 关于这两个接口 进入和退出是指 层级,就是说两者通用的父类到自身之间的所有实现该接口的UI都会调用
+一次点击事件的流程：EventSystem类每帧都会驱动输入模块执行,也就是说PointEventData每帧都会刷新数据,比如没有点击时也会刷新位置信息
+点击时则会通知EventSystem去进行射线检测,EventSystem再通知Raycaster进行真正的射线检测,第一个检测点就会被记录到PointEvetnData中待使用
+PointEventData都填充完毕之后就会处理事件,比如按压 拖拽 移动等,PointEventData是鼠标数据, MouseState 则保存了每个鼠标按键的状态。比如这帧是否进行了点击
+
+UI框架:
+pixelsPerUnit ReferencePixelsPer 默认都是100 那么最终Unit：Pixels = 1，如果 pixelperunit = 10 相当于一个单元只有十个像素,那么显示上就大了十倍 通过SetNativeSize可以测试
+RectTransform
+布局系统: ILayoutElement 想要生效必须有一个或者以上的ILayoutController。
+LayoutRebuilder:dirty时会将gameobject包装到该类中,然后通过该类进行rebuild,该类有对象池获取,build分为计算布局属性和设置属性部分
+计算时先计算子节点再结算父节点以保证结果的正确性
+一次自动布局的流程:setdirty()后进入队列等待布局, 在Canvas被渲染前调用,循环rebuild每个ICanvasElement,先计算gameobject的布局属性 (MinHeight PreferHeight FixeibleHeight
+该属性由ILayoutElement接口实现,比如Text Min 总是为 0 Prefer 总是等于内容的size,  因此使用ContentSizeFitter 控制器就可以根据内容的大小来自适应控制size)
+然后调用 控制器的 SetLayoutHorizontal SetLayoutVertical 来设置 自身或者是child的 属性
+ChildControlsSize:控制子节点的大小在MinHeight 和PreferHeight 之间 比如如果父节点的Height足够,那么会用PreferHeight,如果还有多余空间则根据子节点Fixeible的权重来分配剩余空间
+ChildForceExpand:将所有子节点均匀占满整个区域  如果ChildControlsSize开启则会拉伸
+Cull 和 Mask的区别:Cull 只是用Rect对一个矩阵区域进行裁剪,Mask使用模板测试剔除alpha为0的部分
+Cull和Clip 剔除和裁剪都是clipper算出rect后调用CanvasRender接口
+Mask 模块测试的实现: 嵌套mask和单mask区别不太一样,嵌套mask要复杂需要. 单mask 只需要 always ref 随便 
+嵌套Mask   
+Ref WriteMask ReadMask
+1        255    255
+3        3         1
+7        7         3
+嵌套Mask  需要先比较模板值通过后 改变每一层的模块值  读取时需要读上一层的模板值, 因为在嵌套Mask里一定会显示子Mask(如果父Mask有模板值)(只有有像素的地方才会有模板值)
+Mask DrawCall 合批:
+性质1：Mask会在首尾（首=Mask节点，尾=Mask节点下的孩子遍历完后）多出两个drawcall，多个Mask间如果符合合批条件这两个drawcall可以对应合批（mask1 的首 和 mask2 的首合；mask1 的尾 和 mask2 的尾合。首尾不能合）
+性质2：计算depth的时候，当遍历到一个Mask的首，把它当做一个不可合批的UI节点看待，但注意可以作为其孩子UI节点的bottomUI。
+性质3：Mask内的UI节点和非Mask外的UI节点不能合批，但多个Mask内的UI节点间如果符合合批条件，可以合批。
+原理是 不同层级的UI使用了不用版本的模板材质,只要模板信息相同就会使用相同的材质 自然就能合批,Mask外的UI节点之所以不能和里面的合批是因为使用的材质本身就不同
+RectMask2D
+RectMask2D不需要依赖一个Image组件，其裁剪区域就是它的RectTransform的rect大小.
+性质1：RectMask2D节点下的所有孩子都不能与外界UI节点合批且多个RectMask2D之间不能合批。
+性质2：计算depth的时候，所有的RectMask2D都按一般UI节点看待，只是它没有CanvasRenderer组件，不能看做任何UI控件的bottomUI。
+原理是 Shader中RectClip裁剪区域不同,挂在RectMask2D上的Image能合批是因为没有裁剪区域
+ShowMaskGraphic ColorMask 0
