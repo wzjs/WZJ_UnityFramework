@@ -19,6 +19,7 @@ lua在5.0之前使用简单的扫描标记清除没有引用的对象 这样做会把整个虚拟机的table遍历
 
 经常会把位运算中左移右移的概念搞反，原因可能是没理解高位在后，低位在前，比如 1000000 常常把这个值当成是1 其实这是一个非常大的值，应该是00000001
 原码补码反码是计算机计算负数用的一种编码。
+计算机中的数在内存中都是以补码表示的, 所以 ^1 等于 -2    0000 0001 => 1111 1110 => 需要将补码转化为原码 => 1111 1101 (反码) => 1000 0010 (原码)
 
 C# 调用 Lua 实际上是 C#调用lua的C API 去和Lua交互
 Lua 调用 C# 
@@ -143,10 +144,12 @@ MessageGet messageGet;  声明一个MessageGet类型的变量
 messageGet = () => { Console.WriteLine("111111"); }; lambda用自己内嵌类对象和对象的方法指针
 作为参数构造了一个MessageGet对象,调用时其实就是通过方法的指针
 messageGet()  == messageGet.Invoke()
+public event MessageGet name;
+当定义事件时,会生成一个私有的委托变量和一个公开的事件类型变量,并且生成两个方法add和remove
 事件是对委托的一层封装 
 事件是委托类型的成员 委托是类型
 事件会为其所在的类中增加remove和add两个方法 对应 -= +=  
-事件成员在其class外部不能使用invoke 即调用方法（只能使用+= 或者-= 不能进行其他操作 比如= 赋值操作）
+事件成员在其class外部不能使用invoke 即调用方法（只能使用+= 或者-= 不能进行其他操作 比如= 赋值操作） 因为委托是私有变量,所以外部无法调用
 事件能够增加安全性 暴露的接口少
 
 简单的看了Dictionary的实现：Dictionary有两个核心的变量 一个叫 buckets 用来存储真正的key所对应的下标，
@@ -272,3 +275,26 @@ RectMask2D不需要依赖一个Image组件，其裁剪区域就是它的RectTransform的rect大小.
 性质2：计算depth的时候，所有的RectMask2D都按一般UI节点看待，只是它没有CanvasRenderer组件，不能看做任何UI控件的bottomUI。
 原理是 Shader中RectClip裁剪区域不同,挂在RectMask2D上的Image能合批是因为没有裁剪区域
 ShowMaskGraphic ColorMask 0
+
+Static Batch   Dynamic Batch  GPU Instance : 
+共享相同的材质
+Dynamic Batch:
+1，900个顶点以下的模型。
+2，如果我们使用了顶点坐标，法线，UV，那么就只能最多300个顶点。
+3，如果我们使用了UV0，UV1，和切线，又更少了，只能最多150个顶点。
+4，如果两个模型缩放大小不同，不能被合批的，即模型之间的缩放必须一致。
+5，合并网格的材质球的实例必须相同。即材质球属性不能被区分对待，材质球对象实例必须是同一个。
+6，如果他们有Lightmap数据，必须相同的才有机会合批。
+7，使用多个pass的Shader是绝对不会被合批。因为Multi-pass Shader通常会导致一个物体要连续绘制多次，并切换渲染状态。这会打破其跟其他物体进行Dynamic batching的机会。
+8，延迟渲染是无法被合批。
+Static Batch:设置了静态合批选项后会在打包时将所有静态合批对象的Mesh合成一个Mesh保存起来,但必须使用相同材质
+GPU Instance:必须使用相同Mesh和Material,原理只不过是使用不用的Per-Instance data来处理不同材质,需要使用特殊方法来标记,并不是进行合批操作,不过确实能减少drawcall。
+UNITY_INSTANCING_BUFFER_START(Props)
+           UNITY_DEFINE_INSTANCED_PROP(fixed4, _Color)
+UNITY_INSTANCING_BUFFER_END(Props)
+
+UNITY_ACCESS_INSTANCED_PROP(Props, _Color);
+
+万向节死锁:两条轴共面导致,理论: unity中旋转的顺序是(y-x-z),y是随着惯性坐标轴旋转,x和z 都是随着模型坐标轴旋转, 所以当某一个时刻(比如x旋转90°) ,两个轴平行共面,导致失去了一个方向的旋转
+
+Addressables学习心得:  AddressableAssetEntry 是group中每个asset的封装
