@@ -30,6 +30,7 @@ float 和double的存储方式: sign + 指数位 + 尾数 0.125 -->0.001 -> 0*1/2 + 0 * 1/4
 C# 调用 Lua 实际上是 C#调用lua的C API 去和Lua交互
 Lua 调用 C# 
 .net 和mono ： mon是基于.net开源库开发的一个跨平台的实现方案,主要由社群和xamarin维护  .net无法跨平台,.net core 可以
+.Net vs .Net Framework   目前.Net就是指.Net Core .Net Core 支持跨平台,  .Net Framework 只能在Windows上开发
 msg 延迟调用 缓存
 UI框架:设计了一套完备的UI框架 采用MVC框架 纯lua实现,包含各种生命周期函数 栈实现 命令队列处理ui消息 存储 销毁 框架内几乎所有操作不产生Gc 除了输入产生的数据包,并且支持同时开启多个UI ,能够对控制器进行存储
 并且所有逻辑都写在已经定义好的生命周期内,比如一开始需要进行网络请求,结束后请求资源 ,然后设置面板数据等等,并且定义好gameObject后自动生成lua文件,开发者一般只需要在特定的方法内写逻辑即可,效率非常高 PSDImport 然后通过进场入场函数来配置动画资源
