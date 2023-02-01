@@ -330,7 +330,7 @@ RectMask2D²»ĞèÒªÒÀÀµÒ»¸öImage×é¼ş£¬Æä²Ã¼ôÇøÓò¾ÍÊÇËüµÄRectTransformµÄrect´óĞ¡.
 Ô­ÀíÊÇ ShaderÖĞRectClip²Ã¼ôÇøÓò²»Í¬,¹ÒÔÚRectMask2DÉÏµÄImageÄÜºÏÅúÊÇÒòÎªÃ»ÓĞ²Ã¼ôÇøÓò
 ShowMaskGraphic ColorMask 0
 
-Static Batch   Dynamic Batch  GPU Instance : 
+Static Batch   Dynamic Batch  GPU Instance SRP Batcher : 
 ¹²ÏíÏàÍ¬µÄ²ÄÖÊ
 Dynamic Batch:
 1£¬900¸ö¶¥µãÒÔÏÂµÄÄ£ĞÍ¡£
@@ -349,7 +349,7 @@ UNITY_INSTANCING_BUFFER_START(Props)
 UNITY_INSTANCING_BUFFER_END(Props)
 
 UNITY_ACCESS_INSTANCED_PROP(Props, _Color);
-
+SRP Batcher:  ²»¼õÉÙdrawcall,µ«ÊÇ»áËõ¶ÌdrawcallÖ®¼äµÄÌá½»Ğ§ÂÊ, ÒÔÏàÍ¬shaderÎªÇ°Ìá,ÔÚCPU²ãÌá½»°ó¶¨CBUFFºÍäÖÈ¾Êı¾İºÍ²ÄÖÊ,ºóĞøÈç¹û²ÄÖÊ²»·¢Éú¸Ä±ä¾Í²»»áÌá½»drawcall
 ÍòÏò½ÚËÀËø:Á½ÌõÖá¹²Ãæµ¼ÖÂ,ÀíÂÛ: unityÖĞĞı×ªµÄË³ĞòÊÇ(y-x-z),yÊÇËæ×Å¹ßĞÔ×ø±êÖáĞı×ª,xºÍz ¶¼ÊÇËæ×ÅÄ£ĞÍ×ø±êÖáĞı×ª, ËùÒÔµ±Ä³Ò»¸öÊ±¿Ì(±ÈÈçxĞı×ª90¡ã) ,Á½¸öÖáÆ½ĞĞ¹²Ãæ,µ¼ÖÂÊ§È¥ÁËÒ»¸ö·½ÏòµÄĞı×ª
 
 AddressablesÑ§Ï°ĞÄµÃ:  AddressableAssetEntry ÊÇgroupÖĞÃ¿¸öassetµÄ·â×°
@@ -420,3 +420,15 @@ AssetBundle.Unload(true)ÊÇÊÍ·ÅÄÇ¸öAssetBundleÎÄ¼şÄÚ´æ¾µÏñºÍ²¢Ïú»ÙËùÓĞÓÃLoad´´½¨µ
 Ğ­±äÊÇ±£³ÖÁË×ÓÀàĞÍºÍ»ùÀàĞÍµÄ¹ØÏµ ×ÓÀàĞÍ<=»ùÀàĞÍ 
 Äæ±äÊÇÄæ×ªÁË×ÓÀàĞÍĞò¹ØÏµ
  
+UnityÖĞPlayableºÍTimelineµÄ¹ØÏµ:
+TimelineÊÇÍ¨¹ıplayableÀ´ÊµÏÖµÄ,ÀıÈçTimelinePlayable  Animatorµ×²ãÒ²ÊÇÍ¨¹ıplayableÊµÏÖ ²é¿´animtorµÄÔ´Âë¿ÉÖª
+PlayableµÄºËĞÄ½Ó¿ÚÊÇIPlayable,  ÊµÏÖ¸Ã½Ó¿Ú±íÃ÷ÕâÊÇÒ»¸ö¿ÉÒÔ¹¤×÷µÄ¿ÉÍæÂß¼­¡£ ÀıÈçÒ»Ğ©UnityÄÚÖÃµÄplayable,ÈçAnimationClipPlayable(Animator¾ÍÊÇÓÃÕâ¸öÀ´ÊµÏÖµÄ),AudioClipPlayable(ÄÚÖÃAudioÊµÏÖ), Ä¿Ç°¹«¿ªÔ´ÂëÌá¹©ÁËScriptPlayable<T>µÄÊµÏÖÀ´Ê¹ÓÃ×Ô¶¨ÒåIPlayable
+,ÀıÈçtimelineÖĞµÄScriptPlayable<ParticleControlPlayable>,ScriptPlayable<ActivationMixerPlayable>µÈ,Òò´ËÎÒÃÇ¿ÉÒÔÓÃ×Ô¶¨ÒåµÄScriptPlayableÀ´ÊµÏÖ×Ô¼ºµÄIPlayable¡£
+ScriptPlayable<T> ½ÓÊÜÒ»¸ö·ºĞÍ²ÎÊı ¼Ì³Ğ×ÔPlayableBehaviour, PlayableBehaviour ÊµÏÖÁË¸÷ÖÖÉúÃüÖÜÆÚº¯ÊıÖ±½ÓÊ¹ÓÃ¡£ 
+ÁíÍâÒ»¸öºËĞÄµÄ½Ó¿Ú½ĞIPlayableAsset,ÓÃÀ´ÉèÖÃIPlayable ËùĞèµÄÒ»Ğ©ÉèÖÃ,£¨ÀıÈçAudioPlayableĞèÒªÒ»¸öAudioClipµÈĞÅÏ¢£© ºÍ´´½¨Ò»¸öPlayable¶ÔÏóµ½Graph
+
+Character Controller£º ²»ĞèÒª¸ÕÌåºÍÅö×²Æ÷¾Í¿ÉÒÔÊµÏÖÎïÀíĞ§¹û,ÆäÊµ¾ÍÊÇÄÚ²¿ÊµÏÖÁËÒ»Ì×ÎïÀíĞ§¹û,Åö×²Æ÷Ó¦¸Ãµ÷ÓÃµÄcapsule collider
+
+(FixUpdate FixDeltaTime) & (Update DeltaTime)  
+Update:Ã¿Ö¡¶¼»áµ÷ÓÃÇÒÖ»Ò»´Î¸ÃÊÂ¼ş£¬DeltaTime¾ÍÊÇ´ÓÉÏÖ¡µ½¸ÄÖ¡Ëù¾­ÀúµÄÊ±¼ä£¬ÓÉÓÚäÖÈ¾Ö¡ÂÊÊÇ¸¡¶¯µÄ£¬Òò´ËDeltaTimeÒ²ÊÇ²»¹Ì¶¨µÄ
+FixUpdate:FixDeltaTimeµÄÊ±¼äÊÇ¹Ì¶¨µÄ£¬¿ÉÒÔÍ¨¹ıÉèÖÃ¸Ä±ä£¬Ä¬ÈÏÊÇ0.02s£¬¸ù¾İÊ±¼ä²»Í¬£¬FixUpdateµ÷ÓÃµÄ´ÎÊıÒ²ÊÇ²»¹Ì¶¨µÄ£¬¿ÉÄÜÃ¿Ö¡µ÷ÓÃ¶à´Î£¬Ò²¿ÉÄÜÒ»Ö¡²»µ÷ÓÃ
