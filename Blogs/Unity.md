@@ -173,3 +173,5 @@ ScriptPlayable<T> 接受一个泛型参数 继承自PlayableBehaviour, PlayableB
 1. (FixUpdate FixDeltaTime) & (Update DeltaTime)  
 Update:每帧都会调用且只一次该事件，DeltaTime就是从上帧到改帧所经历的时间，由于渲染帧率是浮动的，因此DeltaTime也是不固定的
 FixUpdate:FixDeltaTime的时间是固定的，可以通过设置改变，默认是0.02s，根据时间不同，FixUpdate调用的次数也是不固定的，可能每帧调用多次，也可能一帧不调用
+
+2. 注意Awake帧一些初始化设置可能还没结束,尽量不要把一些逻辑相关的代码放到awake中,例如 获取postion 不一定是准确的
