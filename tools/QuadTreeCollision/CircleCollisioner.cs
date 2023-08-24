@@ -13,9 +13,12 @@ public class CircleCollisioner : Collisioner
 #if UNITY_EDITOR
     private void OnDrawGizmos()
     {
-        Handles.color = Color.black;
-        var shape = GetShape();
-        Handles.DrawWireDisc(shape.center, Vector3.forward, Raduis);
+        if (QuadTreeCollisionSystem.GetInstance().IsDebug)
+        {
+            Handles.color = Color.black;
+            var shape = GetShape();
+            Handles.DrawWireDisc(shape.center, Vector3.forward, Raduis);
+        }
     }
 #endif
 }

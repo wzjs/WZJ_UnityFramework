@@ -26,7 +26,7 @@ public class QuadTreeCollisionSystem
     private static QuadTreeCollisionSystem _instance;
     private int _maxDepth = 8;
     private int _threshold = 3;
-
+    public  bool IsDebug = false;
     private CollisionNode _root;
     private QuadTreeCollisionSystem(TRect rootRect)
     {
@@ -110,7 +110,6 @@ public class QuadTreeCollisionSystem
         {
             if (depth >= _maxDepth || node.objs.Count < _threshold)
             {
-                Debug.Log($"add obj name>>:{obj as Collisioner} timeframe:{Time.frameCount}");
                 node.objs.Add(obj);
             }
             else
@@ -128,7 +127,6 @@ public class QuadTreeCollisionSystem
             }
             else
             {
-                Debug.Log($"add obj name>>:{obj as Collisioner} timeframe:{Time.frameCount}");
                 node.objs.Add(obj);
             }
         }
@@ -159,8 +157,12 @@ public class QuadTreeCollisionSystem
         }
         node.objs = noneQuadrants;
         var nodeRect = node.rect;
-        Debug.DrawLine(new Vector3(nodeRect.xMin,0, nodeRect.center.y), new Vector3(nodeRect.xMax,0, nodeRect.center.y),Color.black,9999);
-        Debug.DrawLine(new Vector3(nodeRect.center.x,0, nodeRect.yMin), new Vector3(nodeRect.center.x,0, nodeRect.yMax), Color.black, 9999);
+        if (IsDebug)
+        {
+            Debug.DrawLine(new Vector3(nodeRect.xMin, nodeRect.center.y, 0), new Vector3(nodeRect.xMax, nodeRect.center.y, 0), Color.black, 9999);
+            Debug.DrawLine(new Vector3(nodeRect.center.x, nodeRect.yMin, 0), new Vector3(nodeRect.center.x, nodeRect.yMax, 0), Color.black, 9999);
+        }
+        
     }
 
 
@@ -222,17 +224,14 @@ public class QuadTreeCollisionSystem
 
     bool RemoveValue(CollisionNode node, ICollisionable obj)
     {
-        Debug.Log($"remove obj name>>:{obj as Collisioner} timeframe:{Time.frameCount}");
         var isSuccess = node.objs.Remove(obj);
         Assert.IsTrue(isSuccess,$"remove obj name>>:{obj as Collisioner} timeframe:{Time.frameCount}");
         return isSuccess;
     }
 
-    public List<ICollisionable> FindIntersections(ICollisionable obj)
+    public void FindIntersections(ICollisionable obj)
     {
-        var result = new List<ICollisionable>();
-        FindIntersections(_root, obj, result);
-        return result;
+        FindIntersections(_root, obj);
     }
 
     public List<ICollisionable> FindOtherObjInQuadrant(ICollisionable obj)
@@ -262,7 +261,7 @@ public class QuadTreeCollisionSystem
         }
     }
 
-    void FindIntersections(CollisionNode node, ICollisionable targetObj, List<ICollisionable> result)
+    void FindIntersections(CollisionNode node, ICollisionable targetObj)
     {
         var targetRect = targetObj.GetShape();
         foreach (var obj in node.objs)
@@ -270,7 +269,8 @@ public class QuadTreeCollisionSystem
             if (obj == targetObj) continue;
             if (ShapeUtility.IsIntersect(obj.GetShape(), targetRect))
             {
-                result.Add(obj);
+                targetObj.OnCollision(obj);
+                break;
             }
         }
         if (!IsLeaf(node))
@@ -279,7 +279,7 @@ public class QuadTreeCollisionSystem
             {
                 if (ShapeUtility.IsIntersect(subNode.rect,targetRect))
                 {
-                    FindIntersections(subNode, targetObj, result);
+                    FindIntersections(subNode, targetObj);
                 }
             }
         }

@@ -5,4 +5,6 @@ using UnityEngine;
 public interface ICollisionable
 {
     public abstract IRegularShape GetShape();
+
+    public abstract void OnCollision(ICollisionable go);
 }

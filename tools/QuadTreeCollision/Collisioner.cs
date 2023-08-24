@@ -1,15 +1,11 @@
-using DG.Tweening;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Security.Cryptography;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
-using static UnityEngine.GraphicsBuffer;
 
 public abstract class Collisioner : MonoBehaviour,ICollisionable
 {
+    public Action<ICollisionable> OnCollision;
     //private Image image;
     void Awake()
     {
@@ -18,20 +14,7 @@ public abstract class Collisioner : MonoBehaviour,ICollisionable
        
     }
 
-    private void OnEnable()
-    {
-        Debug.Log("OnEnable>>" + transform.localPosition + " name>>" + name);
-        //IntroExecutor.Instance.CollisionSystem.Add(this);
-    }
-    private void OnDisable()
-    {
-        Debug.Log("OnDisable>>" + transform.localPosition + " name>>" + name);
-        //IntroExecutor.Instance.CollisionSystem.Remove(this);
-    }
-    void Start()
-    {
-        
-    }
+    
     //List<Image> _collCache = new List<Image>();
     //List<Image> _quarantCache = new List<Image>();
 
@@ -77,21 +60,26 @@ public abstract class Collisioner : MonoBehaviour,ICollisionable
 
     void ProcessIntersection()
     {
-        var sourceEntity = GetComponent<IntroEntityBase>();
-        var otherIntersection = QuadTreeCollisionSystem.GetInstance().FindIntersections(this);
-        foreach (var obj in otherIntersection)
-        {
-            var collisioner = obj as Collisioner;
-            var entity = collisioner.GetComponent<IntroEntityBase>();
-            if(entity.isFriend != sourceEntity.isFriend)
-            {
-                //sourceEntity.OnCollision(collisioner);
-            }
-        }
+        //var sourceEntity = GetComponent<IntroEntityBase>();
+        //var otherIntersection = QuadTreeCollisionSystem.GetInstance().FindIntersections(this);
+        //foreach (var obj in otherIntersection)
+        //{
+        //    var collisioner = obj as Collisioner;
+            //var entity = collisioner.GetComponent<IntroEntityBase>();
+            //if(entity.isFriend != sourceEntity.isFriend)
+            //{
+            //    //sourceEntity.OnCollision(collisioner);
+            //}
+        //}
     }
 
     public virtual IRegularShape GetShape()
     {
         throw new NotImplementedException();
+    }
+
+    void ICollisionable.OnCollision(ICollisionable go)
+    {
+        OnCollision?.Invoke(go);
     }
 }
