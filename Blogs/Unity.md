@@ -177,3 +177,66 @@ FixUpdate:FixDeltaTime的时间是固定的，可以通过设置改变，默认�
 2. 注意Awake帧一些初始化设置可能还没结束,尽量不要把一些逻辑相关的代码放到awake中,例如 获取postion 不一定是准确的
 
 
+# DOTS
+## Entity Physics
+1. EP其实就是基于ECS库的最佳实践(DOTS)实现了一套确定性的物理系统包括了刚体动力学和空间查询系统
+
+2. 几个特点
+    * 无状态(Stateless): 现代物理引擎为了提高性能和保持稳定性引入了很多缓存,同时也使得系统变得复杂甚至到难以修改代码的程度
+    * 模块化(Modular): EP的核心代码与ECS和Job解藕,使得这些代码可以重用不止限于ECS,同时也可以摆脱底层框架接入自己的实现
+    * 高性能(Highly Performant): 各种特性例如无状态的原生查询使得EP的性能相当于目前主流物理引擎
+    * 互操作性(Interoperable): 可接入Havok Physics Integration (HPI)。 代码的模块化使得可以写入用户代码来接入HPI,例如碰撞修改,触发回调
+3. 物理模拟的执行顺序
+    1. PS(Physics System)从场景中所有?Body Entitiy中获取组件信息。这一步是模拟必须做的步骤，因为PS并不缓存信息,即无状态的。
+    2. 开始BoardPhase??(宽域阶段,针对全局,对应下一步的窄域阶段,针对每个entity)，PS获取所有active body的信息检查哪些aabb发生了重叠即碰撞。这一阶段快速获取所有潜在的body,抛弃其他的body。
+    3. 开始NarrowPhase,根据上步获取到的碰撞信息，用他们的各自的碰撞体进一步计算精确的碰撞点。
+    4. 根据上两步计算得到的信息,返回一个结果,该结果中包含了一些参数，例如碰撞点,双方质量等
+    5. PS根据结果solves碰撞体和joints。该步骤会对受影响的body产生新的速度
+    6. 上一步结束了碰撞的一系列操作,这一步将所有动态body向前整合到时间中,To do this, the physics system moves the dynamic bodies according to their linear and angular velocities, while taking the current time step into account。
+    7. 最后PS应用新的变换到对应的body上
+
+4. 物理模拟前的准备工作以及注意事项
+    * 需要为物体赋予碰撞体和刚体两个组件,如果只需要碰撞的话可以不需要增加刚体. 有两种方式  
+
+        1. 使用unity自带的物理系统组件 collider和rigidbody 
+        2. Entity Physics实现了自己的 collider和rigidbody 分别叫 Physics Shape 和 Physics Body。 
+    * Subscene：在该组件下的场景中会自动将内部的obj转换为entitiy
+
+5. 几个重要的Data Component
+    * 第四步的body和(collider or shape)会将自身(术语:authoring)携带的数据baker到component中供不同的系统使用。
+    1. PhysicsCollider:  
+        * 概念: PS中最重要的一个组件，增加该组件才能参与碰撞和空间查询,该结构中的BlobAssetReference是最重要的一个成员,内部包含了Collider的引用,参与碰撞检测,PS支持各种Collider。
+        * Scale: 缩放Transform的scale会影响到collider的大小,即一起缩放类似原生物理系统,另外不同的collider中有不同参数也可以缩放，例如SpereCollider中的radius等,关于不统一缩放,只有简单的类型可以,例如SpereCollider,像Mesh,Vertice是不可以的。
+        * Collision filter: 可以设置自身的层和能够检测的层来过滤碰撞
+        * Modifying PhysicsCollider: 修改数据有两种方式
+            1. EntityManager.GetComponentData :这种方式只是取出数据,改完值需要重新赋值,并且不支持Job API EntityManager.SetComponentData
+            2. 支持Job(推荐)
+
+
+                        using UnityEngine;
+                        using Unity.Entities;
+                        using Unity.Burst;
+                        using Unity.Physics;
+
+                        public partial class ChangeColliderSystem : ISystem
+                        {
+                            [BurstCompile]
+                            public partial struct ChangeColliderJob : IJobEntity
+                            {
+                                [WithAll(typeof(ChangeColliderFilterJob))]
+                                public void Execute(ref PhysicsCollider collider)
+                                {
+                                    collider.Value.Value.SetCollisionFilter(CollisionFilter.Zero);
+                                }
+                            }
+
+                            [BurstCompile]
+                            public void OnUpdate(ref SystemState state)
+                            {
+                                state.Dependency = new ChangeColliderJob().Schedule(state.Dependency);
+                            }
+                        }
+
+        * Dynamic bodies: 该组件事实上不会做任何事情,需增加其他的组件来支持一些功能,例如PhysicsVelocity。顺带一提,像我们在Editor中使用的Physics Body已经为我们定义并且实现好了各种数据和对应的组件
+
+        * Mass: 组件名为Physics Mass, 通常在使用时Physics Body会为我们增加该组件, 如果没有增加该组件那该collider拥有无限质量,赋予一个速度的话会给物体一个作用体
