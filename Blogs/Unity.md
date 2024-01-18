@@ -17,6 +17,9 @@
 
 2. 进场动画会导致很多位置偏移,很多地方会出现问题 项目坑
 
+## Wwise
+    对应的是Unity的AudioSource,AudioSource是将操作和音效的配置都放在了一起,例如循环 播放等,Wwise实现了真正的音效和操作分离,可以让音效师单独进行控制，在通过事件的方式来调用播放
+    
 ## 批处理
 1.  批处理一般用于静态物体，只需要进行一次合并然后把数据提交给GPU就结束了，但是动态物体每帧都需要渲染，所以每帧都需要提交drawcall给GPU就导致了每帧CPU都需要大量的运算合并
 一次drawcall,GPU会使用相同的渲染状态来绘制，所以批处理的物体必须是相同的渲染状态
@@ -73,8 +76,51 @@ Unity相关测试方法：UnityEngine.Diagnostics.Utils.ForceCrash
 调试真机闪退的方式 如果development勾选的话 包中会自带调试信息 ，如果没有勾选的话需要导出symbols调试文件,当遇到奔溃时 通过arm-linux-androideabi-addr2line -f -C -e   /Applications/Unity.app/Content/PlaybackEngines/AndroidPlayer/Variations/mono/Release/Symbols/armeabi-v7a/libunity.sym.so 0043a05c 来查看堆栈信息
 4. A* 算法:启发式函数 f(n) = g(n) + h(n) ,g(n) 代表n节点到起点的代价, h(n)代表一个从n节点到终点的最佳路径的代价的估算函数。
 1.初始化: 以f(n)为基准初始化一个最小堆或者是优先队列,openset,一开始只有一个节点即起点, 和一个hash字典存储每个节点的g(n),起点为0. 和一个节点之间的一个关系comeFrom,key为目标节点,value为目标节点的父节点
-2.核心算法: 循环遍历节点,直到找到终点,或者没有节点。设当前节点为f(n)最小的节点设为A,对周围节点设为B进行如下操作：首先先从openset中移除A保证下一轮循环不会出现。判断从A出发到B的g(n)是否比原来更小,如果是的话就更新B的f(n)和g(n)
-然后设置comeFrom[B] = A即A是B指向的路径,最后如果B还没有在openset中,就将其加入。这就是一个循环的流程。
+2.核心算法: ~~循环遍历节点,直到找到终点,或者没有节点。设当前节点为f(n)最小的节点设为A,对周围节点设为B进行如下操作：首先先从openset中移除A保证下一轮循环不会出现。判断从A出发到B的g(n)是否比原来更小,如果是的话就更新B的f(n)和g(n)
+然后设置comeFrom[B] = A即A是B指向的路径,最后如果B还没有在openset中,就将其加入。这就是一个循环的流程。~~
+重新写一遍: 主要有三个容器,openset是一个优先队列用来存放未开始的节点，closeset用来存放已经关闭的节点,comefrom用来存放节点的关系，以及g,h,f的容器 
+    1. 首先将初始节点增加到openset中
+    2. while openset[0]:
+    3.  if 节点是终点那就获取路线
+    4.  else 移除出openset 加入到closeset,并且开始遍历附近节点
+    5.       如果附近节点已经在closeset中那 continue
+    6.       如果不在openset中将其加入到openset并且设置g的距离设置batter=true
+    7.       如果已经在openset中那么和之前的g的距离进行比较如果更小那么设置batter=true
+    8.  如果batter等于true，则设置comefrom以及更新g，h，f,并且加入openset
+
+
+        //Matlab語言
+ function A*(start,goal)
+     closedset := the empty set                                        //已经被估算的節點集合
+     openset := set containing the initial node                        //將要被估算的節點集合，初始只包含start
+     came_from := empty map
+     g_score[start] := 0                                               //g(n)
+     h_score[start] := heuristic_estimate_of_distance(start, goal)     //通過估計函數 估計h(start)
+     f_score[start] := h_score[start]                                  //f(n)=h(n)+g(n)，由於g(n)=0，所以省略
+     while openset is not empty                                        //當將被估算的節點存在時，執行循環
+         x := the node in openset having the lowest f_score[] value    //在將被估計的集合中找到f(x)最小的節點
+         if x = goal                                                   //若x為終點，執行
+             return reconstruct_path(came_from,goal)                   //返回到x的最佳路徑
+         remove x from openset                                         //將x節點從將被估算的節點中刪除
+         add x to closedset                                            //將x節點插入已經被估算的節點
+         for each y in neighbor_nodes(x)                               //循環遍歷與x相鄰節點
+             if y in closedset                                         //若y已被估值，跳過
+                 continue
+             tentative_g_score := g_score[x] + dist_between(x,y)       //從起點到節點y的距離
+
+             if y not in openset                                       //若y不是將被估算的節點
+                 tentative_is_better := true                           //暫時判斷為更好
+             elseif tentative_g_score < g_score[y]                     //如果起點到y的距離小於y的實際距離
+                 tentative_is_better := true                           //暫時判斷為更好
+             else
+                 tentative_is_better := false                          //否則判斷為更差
+             if tentative_is_better = true                             //如果判斷為更好
+                 came_from[y] := x                                     //將y設為x的子節點
+                 g_score[y] := tentative_g_score                       //更新y到原點的距離
+                 h_score[y] := heuristic_estimate_of_distance(y, goal) //估計y到終點的距離
+                 f_score[y] := g_score[y] + h_score[y]
+                 add y to openset                                      //將y插入將被估算的節點中
+     return failure
 h(n)有两个属性,1.admissable 可接纳性 2.consistent 一致性。 
 admissable需要保证估算函数不能高估到达终点的代价,这会导致无法找到最优路径
 consistent 假设   N h(N)---S       那么 h(N) <=  c(N,N') + h(N')        设S为终点, h(S)为0 , h(NA) <= C(N,S) + 0 即满足admissable
@@ -119,7 +165,10 @@ IPointerExitHandler IPointerEnterHandler 关于这两个接口 进入和退出�
 点击时则会通知EventSystem去进行射线检测,EventSystem再通知Raycaster进行真正的射线检测,第一个检测点就会被记录到PointEvetnData中待使用
 PointEventData都填充完毕之后就会处理事件,比如按压 拖拽 移动等,PointEventData是鼠标数据, MouseState 则保存了每个鼠标按键的状态。比如这帧是否进行了点击
 
-UI框架:
+UI框架:  
+Rebuild vs Rebatch: Rebuild处于UGUI的C#层,主要是负责每个Graphics被改变后的网格和材质的重建以及
+布局改变后的重建，改变的实现是用过在例如RectTransform数据改变后将其标记为dity数据,然后在管理类中统一处理。 Rebatch是在Native code层面,以Canvas为单位对所有Graphics进行网格合并。通常Rebuild会
+导致网格数据的改变，因此会伴随Rebatch的调用。所以动静分离这个概念被提出。
 pixelsPerUnit ReferencePixelsPer 默认都是100 那么最终Unit：Pixels = 1，如果 pixelperunit = 10 相当于一个单元只有十个像素,那么显示上就大了十倍 通过SetNativeSize可以测试
 RectTransform
 Rect  左下角为坐标原点  center为中心点
@@ -176,67 +225,3 @@ FixUpdate:FixDeltaTime的时间是固定的，可以通过设置改变，默认�
 
 2. 注意Awake帧一些初始化设置可能还没结束,尽量不要把一些逻辑相关的代码放到awake中,例如 获取postion 不一定是准确的
 
-
-# DOTS
-## Entity Physics
-1. EP其实就是基于ECS库的最佳实践(DOTS)实现了一套确定性的物理系统包括了刚体动力学和空间查询系统
-
-2. 几个特点
-    * 无状态(Stateless): 现代物理引擎为了提高性能和保持稳定性引入了很多缓存,同时也使得系统变得复杂甚至到难以修改代码的程度
-    * 模块化(Modular): EP的核心代码与ECS和Job解藕,使得这些代码可以重用不止限于ECS,同时也可以摆脱底层框架接入自己的实现
-    * 高性能(Highly Performant): 各种特性例如无状态的原生查询使得EP的性能相当于目前主流物理引擎
-    * 互操作性(Interoperable): 可接入Havok Physics Integration (HPI)。 代码的模块化使得可以写入用户代码来接入HPI,例如碰撞修改,触发回调
-3. 物理模拟的执行顺序
-    1. PS(Physics System)从场景中所有?Body Entitiy中获取组件信息。这一步是模拟必须做的步骤，因为PS并不缓存信息,即无状态的。
-    2. 开始BoardPhase??(宽域阶段,针对全局,对应下一步的窄域阶段,针对每个entity)，PS获取所有active body的信息检查哪些aabb发生了重叠即碰撞。这一阶段快速获取所有潜在的body,抛弃其他的body。
-    3. 开始NarrowPhase,根据上步获取到的碰撞信息，用他们的各自的碰撞体进一步计算精确的碰撞点。
-    4. 根据上两步计算得到的信息,返回一个结果,该结果中包含了一些参数，例如碰撞点,双方质量等
-    5. PS根据结果solves碰撞体和joints。该步骤会对受影响的body产生新的速度
-    6. 上一步结束了碰撞的一系列操作,这一步将所有动态body向前整合到时间中,To do this, the physics system moves the dynamic bodies according to their linear and angular velocities, while taking the current time step into account。
-    7. 最后PS应用新的变换到对应的body上
-
-4. 物理模拟前的准备工作以及注意事项
-    * 需要为物体赋予碰撞体和刚体两个组件,如果只需要碰撞的话可以不需要增加刚体. 有两种方式  
-
-        1. 使用unity自带的物理系统组件 collider和rigidbody 
-        2. Entity Physics实现了自己的 collider和rigidbody 分别叫 Physics Shape 和 Physics Body。 
-    * Subscene：在该组件下的场景中会自动将内部的obj转换为entitiy
-
-5. 几个重要的Data Component
-    * 第四步的body和(collider or shape)会将自身(术语:authoring)携带的数据baker到component中供不同的系统使用。
-    1. PhysicsCollider:  
-        * 概念: PS中最重要的一个组件，增加该组件才能参与碰撞和空间查询,该结构中的BlobAssetReference是最重要的一个成员,内部包含了Collider的引用,参与碰撞检测,PS支持各种Collider。
-        * Scale: 缩放Transform的scale会影响到collider的大小,即一起缩放类似原生物理系统,另外不同的collider中有不同参数也可以缩放，例如SpereCollider中的radius等,关于不统一缩放,只有简单的类型可以,例如SpereCollider,像Mesh,Vertice是不可以的。
-        * Collision filter: 可以设置自身的层和能够检测的层来过滤碰撞
-        * Modifying PhysicsCollider: 修改数据有两种方式
-            1. EntityManager.GetComponentData :这种方式只是取出数据,改完值需要重新赋值,并且不支持Job API EntityManager.SetComponentData
-            2. 支持Job(推荐)
-
-
-                        using UnityEngine;
-                        using Unity.Entities;
-                        using Unity.Burst;
-                        using Unity.Physics;
-
-                        public partial class ChangeColliderSystem : ISystem
-                        {
-                            [BurstCompile]
-                            public partial struct ChangeColliderJob : IJobEntity
-                            {
-                                [WithAll(typeof(ChangeColliderFilterJob))]
-                                public void Execute(ref PhysicsCollider collider)
-                                {
-                                    collider.Value.Value.SetCollisionFilter(CollisionFilter.Zero);
-                                }
-                            }
-
-                            [BurstCompile]
-                            public void OnUpdate(ref SystemState state)
-                            {
-                                state.Dependency = new ChangeColliderJob().Schedule(state.Dependency);
-                            }
-                        }
-
-        * Dynamic bodies: 该组件事实上不会做任何事情,需增加其他的组件来支持一些功能,例如PhysicsVelocity。顺带一提,像我们在Editor中使用的Physics Body已经为我们定义并且实现好了各种数据和对应的组件
-
-        * Mass: 组件名为Physics Mass, 通常在使用时Physics Body会为我们增加该组件, 如果没有增加该组件那该collider拥有无限质量,赋予一个速度的话会给物体一个作用体
