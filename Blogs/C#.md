@@ -39,6 +39,11 @@ tolua会对调用GetFunction的方法进行弱引用缓存,因此项目中改该
 pbc 需要准备 pb文件（由proto转换而来）首先需要把pb字节都注册到pbc中 前后端公用的协议ID 分别对应各个协议名  数据结构  四字节 数据大小  四字节 协议id  xxx字节 主要内容
 客户端获取到协议ID 然后知道对应的协议再用pbc来解析数据
 C#的protobuf解析分析：在将proto编译成cs文件时，编译器会直接把固定的序列化反序列硬编码到方法中，通过tag来区分不同的字段
+2. protobuf 2.0 VS 3.0  
+	1. 移除了required(ps:2.0其实也不推荐使用,因为required是永久性的,如果中途修改为optional，那么旧版本可能无法解析)
+	2. 将optional改成了singular
+	3. repeated默认采用"pack"编码
+	4. 移除了default,3.0的默认值由系统自动分配
 
 ## 语法
 
@@ -90,6 +95,9 @@ public event MessageGet name;
 哈希运算 `int num = this.comparer.GetHashCode(key) & 0x7fff_ffff; `
 int index = num % this.buckets.Length;
 再用index去buckets用寻找真正的下标代入到entries中如果key正好和所需的key相同就返回，否则继续从next中遍历
+Dictionary中有4个count 1. Count: 表示真正存储对象的个数
+2.count: 表示按序列count++到的位置 3. freecount:表示被移除后空出来的位置,空出来的位置也会形成链表 freelist表示当前空出来的下标 4:实际数组容量size
+扩容的长度为两倍当前长度的素数，因为素数能够减少哈希碰撞(素数拥有更少的公约数)
 
 4. 使用异步来加载资源时应该极小心当时加载完后的一个上下文状态， 因为不是同步操作,所以状态很有可能会发生改变,应该在使用前做好各种判断.
 5. 闭包 ：upvalue实际是局部变量，而局部变量是保存在函数堆栈框架上的，所以只要upvalue还没有离开自己的作用域，它就一直生存在函数堆栈上。

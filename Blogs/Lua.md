@@ -47,6 +47,8 @@ local t = {1,2,3}; t[2] = nil; print(#t) => 3    t[2] = nil   只会单纯将 t[
 local t = {1,2,3}; t[2] = nil; t["x"] = nil; print(#t) => 1 t["x"] 引发rehash  会移除所有的nil数据 array part： 1 hash part 3
 local t = {1,2,3,4,5,6,7,8}; t[16] = 0; print(#t) => 16 
 local t = {1,2,3,4,5,6,7,8}; t[15] = 0; print(#t) => 8
+上面两种情况在源码中其实都是扩容到了16,只是#的规则有差异,可以看上面#获取长度的规则
+
 解决hash冲突的方式
 2.1 开放定址法
 2.1.1 线行探查法
