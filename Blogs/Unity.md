@@ -217,11 +217,78 @@ Playable的核心接口是IPlayable,  实现该接口表明这是一个可以工
 ,例如timeline中的ScriptPlayable<ParticleControlPlayable>,ScriptPlayable<ActivationMixerPlayable>等,因此我们可以用自定义的ScriptPlayable来实现自己的IPlayable。
 ScriptPlayable<T> 接受一个泛型参数 继承自PlayableBehaviour, PlayableBehaviour 实现了各种生命周期函数直接使用。 
 另外一个核心的接口叫IPlayableAsset,用来设置IPlayable 所需的一些设置,（例如AudioPlayable需要一个AudioClip等信息） 和创建一个Playable对象到Graph
+记录一个timeline的问题,带有playerDirector的obj.setActive(false)时,会触发Playable的ActivationControlPlayable.OnPlayableDestroy方法,所以就会导致隐藏obj,但是关联的一些obj又会被打开.而且OnPlayableDestroy会在这帧的最后才会执行, 就是说如果你在这帧之前想要把其他obj隐藏掉也没用,最后还是会在ActivationControlPlayable.OnPlayableDestroy中被打开
 
+好像目前还是 有没关的 
+Ani没关掉是因为轨道的PostPlayback设置了revert,即使我们Hide了 revert的操作在这之后(这部分在ActivationControlPlayable.OnPlayableDestroy 一个生命周期函数) ,如果我们想要隐藏所有轨道还不太好处理,加载中被断掉能隐藏是因为timeline没播放过Playable还没生成 。
 # 生命周期
 1. (FixUpdate FixDeltaTime) & (Update DeltaTime)  
 Update:每帧都会调用且只一次该事件，DeltaTime就是从上帧到改帧所经历的时间，由于渲染帧率是浮动的，因此DeltaTime也是不固定的
 FixUpdate:FixDeltaTime的时间是固定的，可以通过设置改变，默认是0.02s，根据时间不同，FixUpdate调用的次数也是不固定的，可能每帧调用多次，也可能一帧不调用
 
-2. 注意Awake帧一些初始化设置可能还没结束,尽量不要把一些逻辑相关的代码放到awake中,例如 获取postion 不一定是准确的
+2. 注意Awake帧一些初始化设置可能还没结束,尽量不要把一些逻辑相关的代码放到awake中,例如 获取postion 不一定是准确的,
+Awake只要在gameObject是激活状态就会屌用
+Start,Update等生命周期函数除了激活外还必须是enable状态才会调用,此处不会调用start
 
+
+        private void Awake()
+        {
+            Debug.Log("awake");
+            gameObject.SetActive(false);
+        }
+
+        void Start()
+        {
+            Debug.Log("start");
+            gameObject.SetActive(true);
+        }
+有一个有意思的现象,Awake和Start对于不同对象的调用时机不同,如果是被实例化的对象,那么Awake start将会在同一帧内执行,如果是本身存在于场景中的对象,Awake和Start是上下帧的关系
+
+项目经验
+1. 在UGUI中发现Start中直接设置组件的position和在框架的生命周期SetPanelData等中设置不一致,是因为框架中会对Canvas的Camera进行设置,导致整个Canvas被缩放导致世界坐标发生变化,因此用UGUI的anchorposition就OK了
+
+2. Destroy(obj1);
+Debug.Log(obj1 == null);
+Debug.Log(obj1);
+
+3. 单例 PlayerContext 不要在静态字段中缓存
+
+4. Tile中一些函数的调用顺序以及细节 
+    * Tilemap.SetTile(cellpos,asset): 内部C++源码看不到,测试发现SetTile时,会先判断asset是否会空,如果为空内部直接处理掉了,不为空则调用asset的重载方法RefreshData,默认会走ITilemap的方法,一般都会在内部调用Tilemap.RefreshTile
+    * Tilemap.RefreshTile: 比较核心的方法,更新地块表现也就是GetTileData(Vector3Int position, ITilemap tilemap, ref TileData tileData)都是由该方法来调用,通过修改tileData数据的方式来刷新,另外每次刷新都会调用地块的StartUp方法
+    总结: Tilemap.SetTile()=>Tilebase.RefreshTile()=>Tilemap.RefreshTile()=>Tilebase.GetTileData()
+
+
+5. // FGUI加载流程: 流解包 并记录具体类型,例如GImage,GMovieClip等,然后UIPackage.CreateObject加载
+出界面,树形加载,例如如果遇到GComponent则会递归加载子物体. 加载完就是刷新界面流程 通过StageEngine.LateUpdate
+更新DisplayObject,DisplayObject通过GObject去赋值然后去刷新界面.另外项目中做了一些扩展,自定义了一些子GObject
+来表示项目中的一些组件UI,例如CommonBtn : GButton,因此在递归实例化GObject时会检测是否是扩展类,再进行实例化。
+对于根界面来说是直接通过全局注册的控制器(Controller)来启动,具体是每个控制器中会注册自身UI的事件,当触发该
+事件后会判断是否是该UI的Id,然后在配置表中通过Id获取到对应数据,然后加载UI资源
+
+UIPanel生命周期 => UIPackage.AddPackage => UIPanel.CreateUI_PlayMode => UIPackage.CreateObject => 
+UIObjectFactory.NewObject生成界面root component => ConstructFromResource 其中会递归生成其他组件
+
+StageEngine.LateUpdate => Stage.inst.InternalUpdate => Container.Update => DisplayObject.Update
+
+继承自DisplayObject主要有以下几种子类: 
+1. Container(相当于是一个父节点,不负责具体的业务逻辑显示,有多处GObject都会实例化容器,例如GList,GLoader,GComponent等),顺带一提,GLoader装载器内部以Container为父节点创建MovieClip来动态显示内容
+2. TextField(用来显示文本)
+3. Image(用来显示图片)
+4. Stage(只有一个,又继承自Container,属于根容器,特殊容器)
+5. 还有一些例如InputField,Shape用的比较少就不多说了
+
+1. GGroup: 普通组只是在编辑器内做一个视觉的区分,无实质作用. 高级组的作用主要是对组内的对象进行布局,组操作。他本身不会有DisplayObject,就是说他只是一个纯逻辑的代码,用来改变对象的布局
+
+adb.exe connect 127.0.0.1:XXXXX
+adb forward tcp:34999 localabstract:Unity-com.monstertrainer.android
+
+## 关于GameframeWork架构结合项目的一些理解(https://gameframework.cn/)
+1. Object Pool(OP) vs Reference Pool(RP): ~~OP更像是对单个对象的缓存~~新理解:RP是针对除了Mono的对象
+OP则是可以缓存每个对象,相同对象也可以缓存,用不同的key,从而实现对象池,而RP才是
+所谓的对象池,取对象,如果没有者CreateInstance一个出来。OP其实是基于RP的, OP的基类是ObjectBase,RP的接口是IReference
+ObjectBase继承了IReference,也就是说OP中的对象是从RP中创建,OP对他做了缓存。
+2. Entity是实体类,组合了EntityLogic(继承自Mono),类似实体和表现的形式,Entity由EntiyGroup管理
+EntityGroup则是采用了OP的方式来获取Entity(EntityInstanceObject类),该类又继承了ObjectBase->IReference,
+EntityInstanceObject类中的Target才是我们真正的Gameobject,后续逻辑中再加上Entity(实体)和EnityLogic(逻辑)
+3. 对于Entity的管理:
