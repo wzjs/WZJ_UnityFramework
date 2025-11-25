@@ -1,0 +1,96 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &3662181026643188103
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 90508096010977191, guid: e41295f428c468a4186653f81b552ea8, type: 3}
+      propertyPath: m_Name
+      value: Star
+      objectReference: {fileID: 0}
+    - target: {fileID: 2202851125386459557, guid: e41295f428c468a4186653f81b552ea8, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 21300000, guid: 5364b009fd255704e89e6e0d0444d16a, type: 3}
+    - target: {fileID: 2427667898424489537, guid: e41295f428c468a4186653f81b552ea8, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 21300000, guid: bff8351e4d2d300458029aba08c7628d, type: 3}
+    - target: {fileID: 3832469520209507002, guid: e41295f428c468a4186653f81b552ea8, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3832469520209507002, guid: e41295f428c468a4186653f81b552ea8, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3832469520209507002, guid: e41295f428c468a4186653f81b552ea8, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3832469520209507002, guid: e41295f428c468a4186653f81b552ea8, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3832469520209507002, guid: e41295f428c468a4186653f81b552ea8, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3832469520209507002, guid: e41295f428c468a4186653f81b552ea8, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3832469520209507002, guid: e41295f428c468a4186653f81b552ea8, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3832469520209507002, guid: e41295f428c468a4186653f81b552ea8, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3832469520209507002, guid: e41295f428c468a4186653f81b552ea8, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3832469520209507002, guid: e41295f428c468a4186653f81b552ea8, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6485079619689964295, guid: e41295f428c468a4186653f81b552ea8, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 21300000, guid: bff8351e4d2d300458029aba08c7628d, type: 3}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 90508096010977191, guid: e41295f428c468a4186653f81b552ea8, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: -6189968019791575387}
+  m_SourcePrefab: {fileID: 100100000, guid: e41295f428c468a4186653f81b552ea8, type: 3}
+--- !u!1 &3716352187500717600 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 90508096010977191, guid: e41295f428c468a4186653f81b552ea8, type: 3}
+  m_PrefabInstance: {fileID: 3662181026643188103}
+  m_PrefabAsset: {fileID: 0}
+--- !u!111 &-6189968019791575387
+Animation:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3716352187500717600}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Animation: {fileID: 7400000, guid: 2c4522eafb87ae84da9c676fa34089a9, type: 2}
+  m_Animations:
+  - {fileID: 7400000, guid: 2c4522eafb87ae84da9c676fa34089a9, type: 2}
+  - {fileID: 7400000, guid: 81086d030bd87d348bce8ec1c858f336, type: 2}
+  m_WrapMode: 0
+  m_PlayAutomatically: 0
+  m_AnimatePhysics: 0
+  m_CullingType: 0
